@@ -36,3 +36,125 @@ export function removeTooltips(container) {
   return removeTooltipsHandler(container);
 }
 
+// Helper to work with contenteditable elements
+function getCaretPosition(element) {
+  const selection = window.getSelection();
+  if (selection.rangeCount === 0) return 0;
+  
+  const range = selection.getRangeAt(0);
+  const preCaretRange = range.cloneRange();
+  preCaretRange.selectNodeContents(element);
+  preCaretRange.setEnd(range.endContainer, range.endOffset);
+  return preCaretRange.toString().length;
+}
+
+function setCaretPosition(element, position) {
+  const selection = window.getSelection();
+  const range = document.createRange();
+  
+  let charCount = 0;
+  const nodeStack = [element];
+  let node, foundStart = false;
+  
+  while (!foundStart && (node = nodeStack.pop())) {
+    if (node.nodeType === Node.TEXT_NODE) {
+      const nextCharCount = charCount + node.textContent.length;
+      if (position >= charCount && position <= nextCharCount) {
+        range.setStart(node, position - charCount);
+        range.setEnd(node, position - charCount);
+        foundStart = true;
+      }
+      charCount = nextCharCount;
+    } else {
+      let i = node.childNodes.length;
+      while (i--) {
+        nodeStack.push(node.childNodes[i]);
+      }
+    }
+  }
+  
+  if (foundStart) {
+    selection.removeAllRanges();
+    selection.addRange(range);
+  }
+}
+
+function getPlainText(element) {
+  return element.innerText || element.textContent || '';
+}
+
+// Setup grammar checking for a contenteditable element
+export function setupContentEditable(selectorOrElement, options = {}) {
+  if (typeof window === 'undefined' || !window.document) {
+    console.warn('setupContentEditable requires a browser environment');
+    return;
+  }
+  
+  const element = typeof selectorOrElement === 'string' 
+    ? document.querySelector(selectorOrElement)
+    : selectorOrElement;
+  
+  if (!element) {
+    console.warn('Element not found');
+    return;
+  }
+  
+  const {
+    debounceMs = 1000,
+    autoCheckOnLoad = true,
+    autoCheckOnBlur = true
+  } = options;
+  
+  let isChecking = false;
+  let debounceTimer;
+  let isTyping = false;
+  
+  function checkGrammar() {
+    if (isChecking) return;
+    isChecking = true;
+    
+    const cursorPosition = getCaretPosition(element);
+    const text = getPlainText(element);
+    const result = checkAndFormat(text);
+    
+    element.innerHTML = result.formatted || text;
+    initTooltips(element);
+    
+    requestAnimationFrame(() => {
+      setCaretPosition(element, Math.min(cursorPosition, text.length));
+      element.focus();
+    });
+    
+    isChecking = false;
+  }
+  
+  element.addEventListener('input', () => {
+    isTyping = true;
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+      isTyping = false;
+      checkGrammar();
+    }, debounceMs);
+  });
+  
+  if (autoCheckOnBlur) {
+    element.addEventListener('blur', () => {
+      if (!isTyping) {
+        checkGrammar();
+      }
+    });
+  }
+  
+  if (autoCheckOnLoad) {
+    checkGrammar();
+  }
+  
+  return {
+    check: checkGrammar,
+    destroy: () => {
+      clearTimeout(debounceTimer);
+      removeTooltips(element);
+    }
+  };
+}
+
