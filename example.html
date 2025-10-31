@@ -74,8 +74,11 @@
   <script type="module">
     import { setupContentEditable } from './src/index.js';
     
-    const grammarChecker = setupContentEditable('#text-input');
-
+    // Enable debug mode to see logs in console
+    const grammarChecker = setupContentEditable('#text-input', {
+      debug: true // Set to true to see debug logs
+    });
+ 
   </script>
 </body>
 </html>

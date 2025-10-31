@@ -8,7 +8,8 @@ A JavaScript npm package that scans text for grammar mistakes using custom rules
 - HTML formatting with blue wavy underlines for errors
 - Interactive tooltips with suggestions on hover
 - Zero external dependencies (for core functionality)
-- Easy integration into web projects
+- Easy integration into web projects, React, and TipTap editors
+- Context-aware checking to reduce false positives
 
 ## Installation
 
@@ -16,31 +17,15 @@ A JavaScript npm package that scans text for grammar mistakes using custom rules
 npm install opengrammer
 ```
 
-## Usage
+For TipTap integration, also install:
 
-### Basic Usage
-
-```javascript
-import { checkGrammar, formatText, checkAndFormat, initTooltips } from 'opengrammer';
-import 'opengrammer/styles';
-
-// Check text for grammar errors
-const text = "Their going to the store. Its a nice day.";
-const errors = checkGrammar(text);
-console.log(errors);
-// Returns array of error objects
-
-// Format text with HTML tags
-const formatted = formatText(text, errors);
-// Returns HTML string with errors wrapped in <span> tags
-
-// Or do both in one step
-const result = checkAndFormat(text);
-console.log(result.errors);    // Array of errors
-console.log(result.formatted);  // HTML string
+```bash
+npm install opengrammer @tiptap/pm
 ```
 
-### Integration in HTML
+## Quick Start
+
+### HTML / ContentEditable (Simplest)
 
 ```html
 <!DOCTYPE html>
@@ -49,26 +34,110 @@ console.log(result.formatted);  // HTML string
   <link rel="stylesheet" href="node_modules/opengrammer/src/styles.css">
 </head>
 <body>
-  <div id="content"></div>
+  <div id="editor" contenteditable>Their going to the store. Its a nice day.</div>
   
   <script type="module">
-    import { checkAndFormat, initTooltips } from './node_modules/opengrammer/src/index.js';
+    import { setupContentEditable } from './node_modules/opengrammer/src/index.js';
     
-    const text = "Their going to the store. Its a nice day. I dont know.";
-    const result = checkAndFormat(text);
-    
-    document.getElementById('content').innerHTML = result.formatted;
-    
-    // Initialize tooltips
-    initTooltips('#content');
+    setupContentEditable('#editor', {
+      debug: false // Set to true for debug logs
+    });
   </script>
 </body>
 </html>
 ```
 
-### API Reference
+That's it! Grammar checking happens automatically as you type.
 
-#### `checkGrammar(text)`
+### React
+
+```jsx
+import { useEffect, useRef } from 'react';
+import { setupContentEditable } from 'opengrammer';
+import 'opengrammer/styles';
+
+function GrammarEditor() {
+  const editorRef = useRef(null);
+  const checkerRef = useRef(null);
+
+  useEffect(() => {
+    if (editorRef.current) {
+      checkerRef.current = setupContentEditable(editorRef.current, {
+        debounceMs: 1000,
+        autoCheckOnLoad: true,
+        autoCheckOnBlur: true,
+        debug: false
+      });
+
+      return () => {
+        checkerRef.current?.destroy();
+      };
+    }
+  }, []);
+
+  return (
+    <div
+      ref={editorRef}
+      contentEditable
+      style={{
+        minHeight: '150px',
+        padding: '12px',
+        border: '2px solid #e5e7eb',
+        borderRadius: '8px'
+      }}
+    >
+      Type your text here...
+    </div>
+  );
+}
+```
+
+See [REACT.md](./REACT.md) for more React examples.
+
+### TipTap
+
+```tsx
+import { useEffect, useRef } from 'react';
+import { useEditor } from '@tiptap/react';
+import { Decoration, DecorationSet } from '@tiptap/pm/view';
+import { setupTipTap } from 'opengrammer';
+import 'opengrammer/styles';
+
+function TipTapEditor() {
+  const checkerRef = useRef(null);
+
+  const editor = useEditor({
+    extensions: [
+      // your extensions
+    ],
+    content: '<p>Their going to the store. Its a nice day.</p>'
+  });
+
+  useEffect(() => {
+    if (editor) {
+      checkerRef.current = setupTipTap(editor, {
+        decorations: { Decoration, DecorationSet },
+        debounceMs: 1000,
+        autoCheckOnLoad: true,
+        autoCheckOnBlur: true,
+        debug: false
+      });
+
+      return () => {
+        checkerRef.current?.destroy();
+      };
+    }
+  }, [editor]);
+
+  return <EditorContent editor={editor} />;
+}
+```
+
+See [TIPTAP.md](./TIPTAP.md) for complete TipTap integration guide.
+
+## Core API
+
+### `checkGrammar(text)`
 
 Checks text for grammar errors and returns an array of error objects.
 
@@ -86,6 +155,8 @@ Checks text for grammar errors and returns an array of error objects.
 
 **Example:**
 ```javascript
+import { checkGrammar } from 'opengrammer';
+
 const errors = checkGrammar("Their going there.");
 // Returns:
 // [
@@ -100,7 +171,7 @@ const errors = checkGrammar("Their going there.");
 // ]
 ```
 
-#### `formatText(text, errors)`
+### `formatText(text, errors)`
 
 Formats text with errors wrapped in HTML `<span>` tags.
 
@@ -113,12 +184,14 @@ Formats text with errors wrapped in HTML `<span>` tags.
 
 **Example:**
 ```javascript
+import { checkGrammar, formatText } from 'opengrammer';
+
 const errors = checkGrammar("Their going there.");
 const formatted = formatText("Their going there.", errors);
 // Returns: '<span class="grammar-error" data-error-id="error-0" ...>Their</span> going there.'
 ```
 
-#### `checkAndFormat(text)`
+### `checkAndFormat(text)`
 
 Convenience function that checks grammar and formats text in one step.
 
@@ -132,12 +205,14 @@ Convenience function that checks grammar and formats text in one step.
 
 **Example:**
 ```javascript
+import { checkAndFormat } from 'opengrammer';
+
 const result = checkAndFormat("Their going there.");
 console.log(result.errors);    // Array of errors
 console.log(result.formatted);  // HTML string
 ```
 
-#### `initTooltips(container)`
+### `initTooltips(container)`
 
 Initializes tooltip event listeners on formatted HTML elements.
 
@@ -146,32 +221,109 @@ Initializes tooltip event listeners on formatted HTML elements.
 
 **Example:**
 ```javascript
-// After inserting formatted HTML into DOM
+import { checkAndFormat, initTooltips } from 'opengrammer';
+
 const result = checkAndFormat(text);
 document.getElementById('content').innerHTML = result.formatted;
 
 // Initialize tooltips
 initTooltips('#content');
-// or
-initTooltips(document.getElementById('content'));
 ```
 
-#### `removeTooltips(container)`
+### `removeTooltips(container)`
 
 Removes tooltip event listeners from a container.
 
 **Parameters:**
 - `container` (HTMLElement|string): Container element or CSS selector
 
+## Setup Functions
+
+### `setupContentEditable(selectorOrElement, options)`
+
+Easiest way to add grammar checking to a contenteditable element. Handles cursor position, debouncing, and tooltips automatically.
+
+**Parameters:**
+- `selectorOrElement` (string|HTMLElement): CSS selector or DOM element
+- `options` (Object): Configuration options
+  - `debounceMs` (number): Delay before checking after typing stops (default: 1000)
+  - `autoCheckOnLoad` (boolean): Check grammar when element loads (default: true)
+  - `autoCheckOnBlur` (boolean): Check grammar when element loses focus (default: true)
+  - `debug` (boolean): Enable debug logging (default: false)
+
+**Returns:**
+- Object with:
+  - `check()`: Manually trigger grammar check
+  - `destroy()`: Clean up event listeners
+
+**Example:**
+```javascript
+import { setupContentEditable } from 'opengrammer';
+
+const checker = setupContentEditable('#my-editor', {
+  debounceMs: 500,
+  debug: true
+});
+
+// Manual check
+checker.check();
+
+// Cleanup
+checker.destroy();
+```
+
+### `setupTipTap(editor, options)`
+
+Integrates grammar checking with TipTap/ProseMirror editors.
+
+**Parameters:**
+- `editor` (Editor): TipTap editor instance
+- `options` (Object): Configuration options
+  - `decorations` (Object): Required - `{ Decoration, DecorationSet }` from `@tiptap/pm/view`
+  - `debounceMs` (number): Delay before checking (default: 1000)
+  - `autoCheckOnLoad` (boolean): Check on load (default: true)
+  - `autoCheckOnBlur` (boolean): Check on blur (default: true)
+  - `debug` (boolean): Enable debug logging (default: false)
+  - `decorationClass` (string): CSS class for error highlights (default: 'grammar-error-decoration')
+  - `decorationStyle` (string|object): Inline styles for error highlights. Can be a CSS string or an object with camelCase properties
+  - `decorationAttributes` (object): Additional HTML attributes to add to decorations (default: {})
+  - `tooltipStyle` (string|object): Customize tooltip container styles (default: {})
+  - `tooltipMessageStyle` (string|object): Customize error message styles (default: {})
+  - `tooltipSuggestionsStyle` (string|object): Customize suggestions section styles (default: {})
+  - `tooltipLabelStyle` (string|object): Customize "Suggestions:" label styles (default: {})
+  - `tooltipListStyle` (string|object): Customize suggestions list styles (default: {})
+  - `tooltipItemStyle` (string|object): Customize individual suggestion item styles (default: {})
+
+**Returns:**
+- Object with:
+  - `check()`: Manually trigger grammar check
+  - `destroy()`: Clean up event listeners and decorations
+  - `getErrors()`: Get current grammar errors array
+  - `getDecorations()`: Get current ProseMirror decoration set
+
+**Example:**
+```typescript
+import { Decoration, DecorationSet } from '@tiptap/pm/view';
+import { setupTipTap } from 'opengrammer';
+
+const checker = setupTipTap(editor, {
+  decorations: { Decoration, DecorationSet },
+  debounceMs: 1000,
+  debug: false
+});
+```
+
 ## Grammar Rules
 
-The package includes custom rules for detecting:
+The package includes custom context-aware rules for detecting:
 
 - **Homophones**: there/their/they're, its/it's, your/you're, to/too/two
 - **Double spaces**: Multiple consecutive spaces
 - **Missing capitalization**: Lowercase letters after periods
 - **Punctuation**: Multiple periods (should use ellipsis)
 - **Missing apostrophes**: Common contractions (don't, can't, won't, etc.)
+
+Rules check sentence context to reduce false positives. For example, "Their car" won't be flagged because "their" is correctly followed by a noun.
 
 ## Styling
 
@@ -198,6 +350,22 @@ You can customize the styling by overriding the CSS classes:
 - `.grammar-tooltip-message` - Error message
 - `.grammar-tooltip-suggestions` - Suggestions section
 
+## Debug Mode
+
+Enable debug logging to see what's happening:
+
+```javascript
+setupContentEditable('#editor', { debug: true });
+```
+
+Debug output includes:
+- When grammar checking starts/completes
+- Number of errors found and their details
+- Performance timing
+- Cursor position restoration
+- Debounce and blur events
+- Initialization status
+
 ## Browser Support
 
 Requires modern browsers with ES6 module support and DOM APIs. Works in:
@@ -205,7 +373,11 @@ Requires modern browsers with ES6 module support and DOM APIs. Works in:
 - Firefox (latest)
 - Safari (latest)
 
+## Documentation
+
+- [React Integration Guide](./REACT.md) - Detailed React examples and patterns
+- [TipTap Integration Guide](./TIPTAP.md) - Complete TipTap/ProseMirror setup
+
 ## License
 
 MIT
-

@@ -4,6 +4,9 @@ import { checkGrammar as checkGrammarRules } from './grammar-rules.js';
 import { formatTextWithErrors } from './html-formatter.js';
 import { initTooltips as initTooltipsHandler, removeTooltips as removeTooltipsHandler } from './tooltip-handler.js';
 
+// Re-export TipTap integration
+export { setupTipTap } from './tiptap-integration.js';
+
 export function checkGrammar(text) {
   return checkGrammarRules(text);
 }
@@ -102,20 +105,37 @@ export function setupContentEditable(selectorOrElement, options = {}) {
   const {
     debounceMs = 1000,
     autoCheckOnLoad = true,
-    autoCheckOnBlur = true
+    autoCheckOnBlur = true,
+    debug = false
   } = options;
   
   let isChecking = false;
   let debounceTimer;
   let isTyping = false;
   
+  function log(...args) {
+    if (debug) {
+      console.log('[OpenGrammer]', ...args);
+    }
+  }
+  
   function checkGrammar() {
-    if (isChecking) return;
+    if (isChecking) {
+      log('Already checking, skipping...');
+      return;
+    }
     isChecking = true;
     
     const cursorPosition = getCaretPosition(element);
     const text = getPlainText(element);
+    
+    log('Checking grammar...', { textLength: text.length, cursorPosition });
+    
+    const startTime = performance.now();
     const result = checkAndFormat(text);
+    const checkTime = performance.now() - startTime;
+    
+    log(`Found ${result.errors.length} error(s) in ${checkTime.toFixed(2)}ms`, result.errors);
     
     element.innerHTML = result.formatted || text;
     initTooltips(element);
@@ -123,6 +143,7 @@ export function setupContentEditable(selectorOrElement, options = {}) {
     requestAnimationFrame(() => {
       setCaretPosition(element, Math.min(cursorPosition, text.length));
       element.focus();
+      log('Cursor restored to position:', Math.min(cursorPosition, text.length));
     });
     
     isChecking = false;
@@ -130,9 +151,11 @@ export function setupContentEditable(selectorOrElement, options = {}) {
   
   element.addEventListener('input', () => {
     isTyping = true;
+    log('User typing, clearing debounce timer');
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => {
       isTyping = false;
+      log('Debounce timeout reached, checking grammar');
       checkGrammar();
     }, debounceMs);
   });
@@ -140,18 +163,30 @@ export function setupContentEditable(selectorOrElement, options = {}) {
   if (autoCheckOnBlur) {
     element.addEventListener('blur', () => {
       if (!isTyping) {
+        log('Element blurred, checking grammar');
         checkGrammar();
+      } else {
+        log('Element blurred but user was typing, skipping check');
       }
     });
   }
   
   if (autoCheckOnLoad) {
+    log('Initializing grammar checker on load');
     checkGrammar();
   }
+  
+  log('Grammar checker initialized', {
+    debounceMs,
+    autoCheckOnLoad,
+    autoCheckOnBlur,
+    debug
+  });
   
   return {
     check: checkGrammar,
     destroy: () => {
+      log('Destroying grammar checker');
       clearTimeout(debounceTimer);
       removeTooltips(element);
     }
