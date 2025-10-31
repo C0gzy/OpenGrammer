@@ -1,0 +1,27 @@
+{
+  "name": "opengrammer",
+  "version": "1.0.0",
+  "description": "A grammar checker npm package that scans text for grammar mistakes and provides suggestions with visual indicators",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "grammar",
+    "checker",
+    "spell-check",
+    "text-analysis",
+    "writing-tools"
+  ],
+  "author": "Thomas Cogzell <tomcogzell8@gmail.com>",
+  "license": "MIT",
+  "exports": {
+    ".": "./src/index.js",
+    "./styles": "./src/styles.css"
+  },
+  "files": [
+    "src"
+  ]
+}
+
