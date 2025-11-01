@@ -63,6 +63,16 @@ function isLikelyNoun(word) {
   return commonNouns.includes(word.toLowerCase()) || /^[A-Z]/.test(word);
 }
 
+// expetion ing's
+function isExceptionIng(word) {
+    if (!word) return false;
+    const excpetionIng = ['booking' , "meeting", "training", "building", "painting", "hearing", "understanding",
+        "feeling", "recording", "reading", "following", "planning", "offering",
+        "writing", "finding", "beginning", "funding", "dressing", "setting",
+        "housing", "manufacturing", "learning", "teaching", "processing", "printing",
+        "engineering", "advertising", "marketing", "packaging", "handling" ];
+    return excpetionIng.includes(word.toLowerCase());
+}
 // Check if word looks like a verb (ends with ing, ed, etc)
 function isVerbForm(word) {
   if (!word) return false;
@@ -82,7 +92,7 @@ const grammarRules = [
       
       if (word === 'their') {
         // "their" + noun is correct
-        if (isLikelyNoun(context.nextWord)) {
+        if (isLikelyNoun(context.nextWord) || isExceptionIng(context.nextWord)) {
           return [];
         }
         // "their is" should be "there is"
@@ -110,7 +120,7 @@ const grammarRules = [
       
       if (word === "they're") {
         // "they're going/happy" is correct
-        if (isVerbForm(context.nextWord) || ['going', 'coming', 'doing', 'saying', 'looking', 'happy', 'sad', 'good', 'bad'].includes(context.nextWord)) {
+        if (isVerbForm(context.nextWord) && !isExceptionIng(context.nextWord) || ['going', 'coming', 'doing', 'saying', 'looking', 'happy', 'sad', 'good', 'bad'].includes(context.nextWord)) {
           return [];
         }
         // "they're car" should be "their car"
