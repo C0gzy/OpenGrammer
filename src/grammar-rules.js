@@ -44,6 +44,8 @@ function getContext(text, index, length) {
   // Strip punctuation from words for matching
   const nextWordRaw = wordsAfter[0] || '';
   const nextWord = nextWordRaw.toLowerCase().replace(/[.,!?;:]+$/, '');
+  const secondWordRaw = wordsAfter[1] || '';
+  const secondWord = secondWordRaw.toLowerCase().replace(/[.,!?;:]+$/, '');
   
   return {
     before,
@@ -52,6 +54,7 @@ function getContext(text, index, length) {
     wordsBefore,
     wordsAfter,
     nextWord: nextWord,
+    secondWord: secondWord,
     prevWord: wordsBefore[wordsBefore.length - 1]?.toLowerCase().replace(/[.,!?;:]+$/, '') || ''
   };
 }
@@ -59,7 +62,7 @@ function getContext(text, index, length) {
 // Quick check if a word is probably a noun
 function isLikelyNoun(word) {
   if (!word) return false;
-  const commonNouns = ['car', 'house', 'dog', 'cat', 'book', 'person', 'people', 'friend', 'day', 'time', 'thing', 'way', 'man', 'woman', 'child', 'work', 'life', 'world', 'school', 'home', 'family', 'year', 'place', 'city', 'country', 'name', 'problem', 'question', 'answer', 'idea', 'job', 'word', 'number', 'name', 'part', 'hand', 'eye', 'head', 'body', 'face', 'door', 'window', 'room', 'food', 'water', 'money', 'love', 'mind', 'heart', 'soul', 'spirit', 'son', 'daughter', 'mother', 'father', 'brother', 'sister'];
+  const commonNouns = ['car', 'house', 'dog', 'cat', 'book', 'person', 'people', 'friend', 'day', 'time', 'thing', 'way', 'man', 'woman', 'child', 'work', 'life', 'world', 'school', 'home', 'family', 'year', 'place', 'city', 'country', 'name', 'problem', 'question', 'answer', 'idea', 'job', 'word', 'number', 'name', 'part', 'hand', 'eye', 'head', 'body', 'face', 'door', 'window', 'room', 'food', 'water', 'money', 'love', 'mind', 'heart', 'soul', 'spirit', 'son', 'daughter', 'mother', 'father', 'brother', 'sister', 'process', 'system', 'method', 'approach', 'strategy', 'plan', 'project', 'task', 'activity', 'event', 'service', 'product', 'item', 'element', 'component', 'feature', 'function', 'tool', 'device', 'machine', 'equipment', 'material', 'substance', 'resource', 'asset', 'property', 'document', 'file', 'record', 'account', 'report', 'article', 'story', 'chapter', 'section', 'page', 'line', 'point', 'detail', 'fact', 'information', 'data', 'knowledge', 'skill', 'ability', 'talent', 'experience', 'background', 'history', 'culture', 'tradition', 'custom', 'habit', 'routine', 'pattern', 'behavior', 'action', 'movement', 'change', 'development', 'growth', 'progress', 'improvement', 'increase', 'decrease', 'reduction', 'addition', 'subtraction', 'multiplication', 'division', 'calculation', 'computation', 'analysis', 'study', 'research', 'investigation', 'examination', 'inspection', 'review', 'evaluation', 'assessment', 'judgment', 'decision', 'choice', 'option', 'alternative', 'possibility', 'opportunity', 'chance', 'risk', 'danger', 'threat', 'challenge', 'difficulty', 'problem', 'issue', 'concern', 'matter', 'subject', 'topic', 'theme', 'focus', 'attention', 'interest', 'concern', 'care', 'worry', 'anxiety', 'fear', 'hope', 'dream', 'goal', 'objective', 'target', 'aim', 'purpose', 'intention', 'motivation', 'reason', 'cause', 'effect', 'result', 'outcome', 'consequence', 'impact', 'influence', 'power', 'strength', 'force', 'energy', 'effort', 'work', 'labor', 'task', 'duty', 'responsibility', 'obligation', 'requirement', 'need', 'demand', 'request', 'question', 'inquiry', 'query', 'statement', 'declaration', 'announcement', 'message', 'communication', 'conversation', 'discussion', 'debate', 'argument', 'disagreement', 'conflict', 'dispute', 'controversy', 'disagreement', 'difference', 'similarity', 'comparison', 'contrast', 'relationship', 'connection', 'link', 'bond', 'tie', 'association', 'partnership', 'collaboration', 'cooperation', 'team', 'group', 'organization', 'company', 'business', 'enterprise', 'industry', 'sector', 'field', 'area', 'domain', 'realm', 'sphere', 'world', 'universe', 'space', 'environment', 'atmosphere', 'surroundings', 'setting', 'location', 'position', 'place', 'spot', 'site', 'venue', 'arena', 'stage', 'platform', 'base', 'foundation', 'ground', 'floor', 'surface', 'level', 'layer', 'stratum', 'level', 'tier', 'rank', 'grade', 'class', 'category', 'type', 'kind', 'sort', 'variety', 'form', 'shape', 'structure', 'framework', 'design', 'pattern', 'model', 'example', 'instance', 'case', 'sample', 'specimen'];
   return commonNouns.includes(word.toLowerCase()) || /^[A-Z]/.test(word);
 }
 
@@ -119,8 +122,22 @@ const grammarRules = [
       }
       
       if (word === "they're") {
-        // "they're going/happy" is correct
-        if (isVerbForm(context.nextWord) && !isExceptionIng(context.nextWord) || ['going', 'coming', 'doing', 'saying', 'looking', 'happy', 'sad', 'good', 'bad'].includes(context.nextWord)) {
+        // Check if followed by an -ing word that could be a noun
+        // If the -ing word is followed by a noun, then it's being used as a noun
+        // Example: "they're booking process" -> "booking" is a noun (should be "their")
+        if (isExceptionIng(context.nextWord) || (isVerbForm(context.nextWord) && context.nextWord.endsWith('ing'))) {
+          // If the -ing word is followed by a noun, it's being used as a noun
+          if (context.secondWord && isLikelyNoun(context.secondWord)) {
+            return ['their']; // "they're booking process" -> "their booking process"
+          }
+          // If no second word or it's punctuation, could be "they're booking" (verb) - acceptable
+          if (!context.secondWord || context.after.match(/^[,\.!?\s]/)) {
+            return []; // "they're booking" (as verb) is okay
+          }
+        }
+        
+        // "they're going/happy" is correct (verb or adjective)
+        if ((isVerbForm(context.nextWord) && !isExceptionIng(context.nextWord)) || ['going', 'coming', 'doing', 'saying', 'looking', 'happy', 'sad', 'good', 'bad'].includes(context.nextWord)) {
           return [];
         }
         // "they're car" should be "their car"

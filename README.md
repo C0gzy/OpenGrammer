@@ -2,6 +2,8 @@
 
 A JavaScript npm package that scans text for grammar mistakes using custom rules and provides visual indicators with hover tooltips showing correction suggestions.
 
+This is a basic grammer detection and currently only in English. Need a larger dictonary for nouns and such any suggestions will be much loved :)
+
 ## Features
 
 - Custom grammar rule engine for detecting common mistakes
