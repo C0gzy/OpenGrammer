@@ -66,6 +66,13 @@ function isLikelyNoun(word) {
   return commonNouns.includes(word.toLowerCase()) || /^[A-Z]/.test(word);
 }
 
+// unneeded for now, but could be used later
+function islikelyaAdjective(word) {
+  if (!word) return false;
+  const commonAdjectives = ['good', 'bad', 'nice', 'fine', 'okay', 'ok', 'a', 'the', 'not', 'very', 'happy', 'sad', 'angry', 'anxious', 'depressed', 'excited', 'frightened', 'glad', 'helpless', 'lonely', 'miserable', 'nervous', 'obnoxious', 'outraged', 'repulsed', 'terrible', 'thoughtless', 'tired', 'upset', 'worried'];
+  return commonAdjectives.includes(word.toLowerCase());
+}
+
 // expetion ing's
 function isExceptionIng(word) {
     if (!word) return false;

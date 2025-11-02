@@ -9,7 +9,10 @@ import {
 } from "./tooltip-handler.js";
 
 // Re-export TipTap integration
-export { GrammerCheckContentTipTap } from "./tiptap-integration.js";
+export {
+  GrammerCheckContentTipTap,
+  setupTipTap,
+} from "./tiptap-integration.js";
 
 export function checkGrammar(text) {
   return checkGrammarRules(text);

@@ -77,8 +77,9 @@ export function GrammerCheckContentTipTap(editor, options = {}) {
     autoCheckOnLoad = true,
     autoCheckOnBlur = true,
     debug = false,
-    decorationClass = "grammar-error-decoration",
-    decorationStyle = "background-color: rgba(59, 130, 246, 0.2); border-bottom: 2px wavy rgba(59, 130, 246, 0.6); cursor: help;",
+    decorationClass = "grammar-error",
+    decorationStyle = {},
+    decorationHoverStyle = {},
     tooltipStyle = {},
     tooltipMessageStyle = {},
     tooltipSuggestionsStyle = {},
@@ -104,6 +105,10 @@ export function GrammerCheckContentTipTap(editor, options = {}) {
     return "";
   }
 
+
+  // Default decoration styles
+  const defaultDecorationStyle = UpdateStyle("grammarerror", decorationStyle);
+  const defaultDecorationHoverStyle = UpdateStyle("grammarerror:hover", decorationHoverStyle);
   // Default tooltip styles
   const defaultTooltipStyle = UpdateStyle("TooltipStyle", tooltipStyle);
 
@@ -178,7 +183,8 @@ export function GrammerCheckContentTipTap(editor, options = {}) {
 
           const decoration = Decoration.inline(validStartPos, validEndPos, {
             class: decorationClass,
-            style: decorationStyle,
+            style: styleObjectToString(defaultDecorationStyle),
+            "hover-style": styleObjectToString(defaultDecorationHoverStyle),
             "data-error-id": error.id || String(error.startIndex),
             "data-suggestions": JSON.stringify(error.suggestions || []),
             "data-message": error.message || "Grammar error",

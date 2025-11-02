@@ -1,20 +1,5 @@
 export function UpdateStyle(Style, AddedStyles) {
-  switch (Style) {
-    case "TooltipStyle":
-      return Object.assign(TooltipStyle, AddedStyles);
-    case "defaultMessageStyle":
-      return Object.assign(defaultMessageStyle, AddedStyles);
-    case "defaultSuggestionsStyle":
-      return Object.assign(defaultSuggestionsStyle, AddedStyles);
-    case "defaultLabelStyle":
-      return Object.assign(defaultLabelStyle, AddedStyles);
-    case "defaultListStyle":
-      return Object.assign(defaultListStyle, AddedStyles);
-    case "defaultItemStyle":
-      return Object.assign(defaultItemStyle, AddedStyles);
-    case "grammarerror":
-      return Object.assign(grammarerror, AddedStyles);
-  }
+  return Object.assign(defaultDecorationStyle[Style], AddedStyles);
 }
 
 export function UpdateCSSStyleSheet(selector, props, sheets) {
@@ -79,56 +64,60 @@ export function UpdateCSSStyleSheet(selector, props, sheets) {
   }
 }
 
-const grammarerror = {
-  position: "relative",
-  "text-decoration": "underline",
-  "text-decoration-color": "#3b82f6",
-  "text-decoration-thickness": "2px",
-  "text-decoration-style": "wavy",
-  cursor: "help",
-  "background-color": "transparent",
-};
+const defaultDecorationStyle = {
+  grammarerror: {
+    position: "relative",
+    "text-decoration": "underline",
+    "text-decoration-color": "#3b82f6",
+    "text-decoration-thickness": "2px",
+    "text-decoration-style": "wavy",
+    cursor: "help",
+    "background-color": "transparent",
+  },
+  "grammarerror:hover": {
+    "background-color": "rgba(59, 130, 246, 0.1)",
+  },
+  TooltipStyle: {
+    position: "fixed",
+    backgroundColor: "#1f2937",
+    color: "#f9fafb",
+    padding: "12px 16px",
+    borderRadius: "8px",
+    fontSize: "14px",
+    zIndex: "10000",
+    maxWidth: "300px",
+    boxShadow:
+      "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+    pointerEvents: "none",
+  },
+  
+  defaultMessageStyle: {
+    fontWeight: "500",
+    marginBottom: "8px",
+  },
 
-const TooltipStyle = {
-  position: "fixed",
-  backgroundColor: "#1f2937",
-  color: "#f9fafb",
-  padding: "12px 16px",
-  borderRadius: "8px",
-  fontSize: "14px",
-  zIndex: "10000",
-  maxWidth: "300px",
-  boxShadow:
-    "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
-  pointerEvents: "none",
-};
+  defaultSuggestionsStyle: {
+    marginTop: "8px",
+    paddingTop: "8px",
+    borderTop: "1px solid rgba(255, 255, 255, 0.2)",
+    },
 
-const defaultMessageStyle = {
-  fontWeight: "500",
-  marginBottom: "8px",
-};
+  defaultLabelStyle: {
+    fontSize: "12px",
+    color: "#9ca3af",
+    marginBottom: "4px",
+    textTransform: "uppercase",
+    letterSpacing: "0.5px",
+  },
 
-const defaultSuggestionsStyle = {
-  marginTop: "8px",
-  paddingTop: "8px",
-  borderTop: "1px solid rgba(255, 255, 255, 0.2)",
-};
+  defaultListStyle: {
+    listStyle: "none",
+    padding: "0",
+    margin: "0",
+  },
 
-const defaultLabelStyle = {
-  fontSize: "12px",
-  color: "#9ca3af",
-  marginBottom: "4px",
-  textTransform: "uppercase",
-  letterSpacing: "0.5px",
-};
-
-const defaultListStyle = {
-  listStyle: "none",
-  padding: "0",
-  margin: "0",
-};
-
-const defaultItemStyle = {
-  padding: "4px 0",
-  color: "#60a5fa",
-};
+  defaultItemStyle: {
+    padding: "4px 0",
+    color: "#60a5fa",
+  },
+}
