@@ -13,7 +13,7 @@ npm install opengrammer @tiptap/core @tiptap/pm
 ```tsx
 import { Editor } from '@tiptap/core';
 import { Decoration, DecorationSet } from '@tiptap/pm/view';
-import { setupTipTap } from 'opengrammer';
+import { GrammerCheckContentTipTap } from 'opengrammer';
 import 'opengrammer/styles';
 
 // Create your TipTap editor
@@ -25,7 +25,7 @@ const editor = new Editor({
 });
 
 // Setup grammar checking
-const grammarChecker = setupTipTap(editor, {
+const grammarChecker = GrammerCheckContentTipTap(editor, {
   decorations: { Decoration, DecorationSet }, // Required
   debounceMs: 1000,
   autoCheckOnLoad: true,
@@ -43,7 +43,7 @@ const grammarChecker = setupTipTap(editor, {
 import { useEffect, useRef } from 'react';
 import { useEditor } from '@tiptap/react';
 import { Decoration, DecorationSet } from '@tiptap/pm/view';
-import { setupTipTap } from 'opengrammer';
+import { GrammerCheckContentTipTap } from 'opengrammer';
 import 'opengrammer/styles';
 
 function GrammarEditor() {
@@ -58,7 +58,7 @@ function GrammarEditor() {
 
   useEffect(() => {
     if (editor) {
-      checkerRef.current = setupTipTap(editor, {
+      checkerRef.current = GrammerCheckContentTipTap(editor, {
         decorations: { Decoration, DecorationSet },
         debounceMs: 1000,
         autoCheckOnLoad: true,
@@ -88,7 +88,7 @@ function GrammarEditor() {
 <script setup>
 import { onMounted, onBeforeUnmount } from 'vue';
 import { useEditor } from '@tiptap/vue-3';
-import { setupTipTap } from 'opengrammer';
+import { GrammerCheckContentTipTap } from 'opengrammer';
 import 'opengrammer/styles';
 
 const editor = useEditor({
@@ -102,7 +102,7 @@ let grammarChecker = null;
 
 onMounted(() => {
   if (editor.value) {
-    grammarChecker = setupTipTap(editor.value, {
+    grammarChecker = GrammerCheckContentTipTap(editor.value, {
       debounceMs: 1000,
       autoCheckOnLoad: true,
       autoCheckOnBlur: true
@@ -120,7 +120,7 @@ onBeforeUnmount(() => {
 ## Options
 
 ```typescript
-setupTipTap(editor, {
+GrammerCheckContentTipTap(editor, {
   decorations: { Decoration, DecorationSet }, // Required: from @tiptap/pm/view
   debounceMs: 1000,           // Delay before checking after typing stops
   autoCheckOnLoad: true,      // Check grammar when editor loads
@@ -144,7 +144,7 @@ setupTipTap(editor, {
 
 ## API
 
-The `setupTipTap` function returns an object with:
+The `GrammerCheckContentTipTap` function returns an object with:
 
 - `check()` - Manually trigger grammar check
 - `destroy()` - Clean up event listeners and decorations
@@ -158,7 +158,7 @@ You can customize how errors are highlighted in several ways:
 ### Using Inline Styles (String)
 
 ```typescript
-const grammarChecker = setupTipTap(editor, {
+const grammarChecker = GrammerCheckContentTipTap(editor, {
   decorations: { Decoration, DecorationSet },
   decorationClass: 'my-custom-error-class',
   decorationStyle: 'background-color: yellow; text-decoration: underline; border-bottom: 2px solid red;'
@@ -168,7 +168,7 @@ const grammarChecker = setupTipTap(editor, {
 ### Using Inline Styles (Object)
 
 ```typescript
-const grammarChecker = setupTipTap(editor, {
+const grammarChecker = GrammerCheckContentTipTap(editor, {
   decorations: { Decoration, DecorationSet },
   decorationStyle: {
     backgroundColor: 'rgba(255, 0, 0, 0.2)',
@@ -182,7 +182,7 @@ const grammarChecker = setupTipTap(editor, {
 ### Custom CSS Class
 
 ```typescript
-const grammarChecker = setupTipTap(editor, {
+const grammarChecker = GrammerCheckContentTipTap(editor, {
   decorations: { Decoration, DecorationSet },
   decorationClass: 'my-custom-error-class'
 });
@@ -207,7 +207,7 @@ Then add CSS:
 You can add custom data attributes or other HTML attributes:
 
 ```typescript
-const grammarChecker = setupTipTap(editor, {
+const grammarChecker = GrammerCheckContentTipTap(editor, {
   decorations: { Decoration, DecorationSet },
   decorationAttributes: {
     'data-custom': 'value',
@@ -222,7 +222,7 @@ const grammarChecker = setupTipTap(editor, {
 You can customize the tooltip appearance:
 
 ```typescript
-const grammarChecker = setupTipTap(editor, {
+const grammarChecker = GrammerCheckContentTipTap(editor, {
   decorations: { Decoration, DecorationSet },
   tooltipStyle: {
     backgroundColor: '#ffffff',
@@ -258,7 +258,7 @@ const grammarChecker = setupTipTap(editor, {
 ### Complete Customization Example
 
 ```typescript
-const grammarChecker = setupTipTap(editor, {
+const grammarChecker = GrammerCheckContentTipTap(editor, {
   decorations: { Decoration, DecorationSet },
   decorationClass: 'grammar-error-custom',
   decorationStyle: {
@@ -291,7 +291,7 @@ const grammarChecker = setupTipTap(editor, {
 If you have other decorations in your editor, you'll need to merge them:
 
 ```typescript
-const grammarChecker = setupTipTap(editor);
+const grammarChecker = GrammerCheckContentTipTap(editor);
 
 // Override the decorations prop to merge with existing ones
 editor.view.setProps({
@@ -314,7 +314,7 @@ function EditorWithButton() {
 
   useEffect(() => {
     if (editor) {
-      checkerRef.current = setupTipTap(editor, {
+      checkerRef.current = GrammerCheckContentTipTap(editor, {
         autoCheckOnLoad: false, // Disable auto-check
         autoCheckOnBlur: false
       });
@@ -347,7 +347,7 @@ function EditorWithButton() {
 Enable debug logging to see what's happening:
 
 ```typescript
-setupTipTap(editor, { debug: true });
+GrammerCheckContentTipTap(editor, { debug: true });
 ```
 
 This will log:

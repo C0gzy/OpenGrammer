@@ -10,11 +10,11 @@ npm install opengrammer
 
 ## Option 1: ContentEditable Component (Recommended)
 
-Use the `setupContentEditable` function with a contenteditable div:
+Use the `GrammerCheckContent` function with a contenteditable div:
 
 ```jsx
 import { useEffect, useRef } from 'react';
-import { setupContentEditable } from 'opengrammer';
+import { GrammerCheckContent } from 'opengrammer';
 import 'opengrammer/styles';
 
 function GrammarEditor() {
@@ -24,7 +24,7 @@ function GrammarEditor() {
   useEffect(() => {
     if (editorRef.current) {
       // Setup grammar checking
-      checkerRef.current = setupContentEditable(editorRef.current, {
+      checkerRef.current = GrammerCheckContent(editorRef.current, {
         debounceMs: 1000,
         autoCheckOnLoad: true,
         autoCheckOnBlur: true,
@@ -65,7 +65,7 @@ Create a reusable hook for easier integration:
 
 ```jsx
 import { useEffect, useRef } from 'react';
-import { setupContentEditable } from 'opengrammer';
+import { GrammerCheckContent } from 'opengrammer';
 import 'opengrammer/styles';
 
 function useGrammarChecker(selectorOrRef, options = {}) {
@@ -80,7 +80,7 @@ function useGrammarChecker(selectorOrRef, options = {}) {
     if (!element) return;
 
     elementRef.current = element;
-    checkerRef.current = setupContentEditable(element, options);
+    checkerRef.current = GrammerCheckContent(element, options);
 
     return () => {
       if (checkerRef.current) {
@@ -217,7 +217,7 @@ Full-featured component with manual check button:
 
 ```jsx
 import { useRef, useCallback } from 'react';
-import { setupContentEditable } from 'opengrammer';
+import { GrammerCheckContent } from 'opengrammer';
 import 'opengrammer/styles';
 
 function GrammarEditor() {
@@ -227,7 +227,7 @@ function GrammarEditor() {
   const handleSetup = useCallback((node) => {
     if (node) {
       editorRef.current = node;
-      checkerRef.current = setupContentEditable(node, {
+      checkerRef.current = GrammerCheckContent(node, {
         debounceMs: 1000,
         autoCheckOnLoad: true,
         autoCheckOnBlur: true,
@@ -289,7 +289,7 @@ declare module 'opengrammer' {
   export function initTooltips(container: HTMLElement | string): void;
   export function removeTooltips(container: HTMLElement | string): void;
 
-  export function setupContentEditable(
+  export function GrammerCheckContent(
     selectorOrElement: string | HTMLElement,
     options?: {
       debounceMs?: number;
@@ -309,7 +309,7 @@ declare module 'opengrammer' {
 Enable debug logging to see what's happening under the hood:
 
 ```jsx
-setupContentEditable(editorRef.current, {
+GrammerCheckContent(editorRef.current, {
   debug: true // Logs checking status, errors found, timing, etc.
 });
 ```
@@ -325,9 +325,9 @@ Debug output includes:
 ## Notes
 
 - Make sure to import the CSS: `import 'opengrammer/styles'`
-- For contenteditable elements, use `setupContentEditable` for the best experience
+- For contenteditable elements, use `GrammerCheckContent` for the best experience
 - The function handles cursor position preservation automatically
 - Clean up on component unmount to prevent memory leaks
-- Tooltips work automatically after calling `initTooltips` or using `setupContentEditable`
+- Tooltips work automatically after calling `initTooltips` or using `GrammerCheckContent`
 - Enable `debug: true` during development to troubleshoot issues
 

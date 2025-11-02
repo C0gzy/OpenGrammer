@@ -37,11 +37,11 @@ npm install opengrammer @tiptap/pm
 </head>
 <body>
   <div id="editor" contenteditable>Their going to the store. Its a nice day.</div>
-  
+
   <script type="module">
-    import { setupContentEditable } from './node_modules/opengrammer/src/index.js';
-    
-    setupContentEditable('#editor', {
+    import { GrammerCheckContent } from './node_modules/opengrammer/src/index.js';
+
+    GrammerCheckContent('#editor', {
       debug: false // Set to true for debug logs
     });
   </script>
@@ -55,7 +55,7 @@ That's it! Grammar checking happens automatically as you type.
 
 ```jsx
 import { useEffect, useRef } from 'react';
-import { setupContentEditable } from 'opengrammer';
+import { GrammerCheckContent } from 'opengrammer';
 import 'opengrammer/styles';
 
 function GrammarEditor() {
@@ -64,7 +64,7 @@ function GrammarEditor() {
 
   useEffect(() => {
     if (editorRef.current) {
-      checkerRef.current = setupContentEditable(editorRef.current, {
+      checkerRef.current = GrammerCheckContent(editorRef.current, {
         debounceMs: 1000,
         autoCheckOnLoad: true,
         autoCheckOnBlur: true,
@@ -102,7 +102,7 @@ See [REACT.md](./REACT.md) for more React examples.
 import { useEffect, useRef } from 'react';
 import { useEditor } from '@tiptap/react';
 import { Decoration, DecorationSet } from '@tiptap/pm/view';
-import { setupTipTap } from 'opengrammer';
+import { GrammerCheckContentTipTap } from 'opengrammer';
 import 'opengrammer/styles';
 
 function TipTapEditor() {
@@ -117,7 +117,7 @@ function TipTapEditor() {
 
   useEffect(() => {
     if (editor) {
-      checkerRef.current = setupTipTap(editor, {
+      checkerRef.current = GrammerCheckContentTipTap(editor, {
         decorations: { Decoration, DecorationSet },
         debounceMs: 1000,
         autoCheckOnLoad: true,
@@ -241,7 +241,7 @@ Removes tooltip event listeners from a container.
 
 ## Setup Functions
 
-### `setupContentEditable(selectorOrElement, options)`
+### `GrammerCheckContent(selectorOrElement, options)`
 
 Easiest way to add grammar checking to a contenteditable element. Handles cursor position, debouncing, and tooltips automatically.
 
@@ -252,6 +252,15 @@ Easiest way to add grammar checking to a contenteditable element. Handles cursor
   - `autoCheckOnLoad` (boolean): Check grammar when element loads (default: true)
   - `autoCheckOnBlur` (boolean): Check grammar when element loses focus (default: true)
   - `debug` (boolean): Enable debug logging (default: false)
+  - `decorationClass` (string): CSS class for error highlights (default: 'grammar-error-decoration')
+  - `decorationStyle` (string|object): Inline styles for error highlights. Can be a CSS string or an object with camelCase properties
+  - `decorationAttributes` (object): Additional HTML attributes to add to decorations (default: {})
+  - `tooltipStyle` (string|object): Customize tooltip container styles (default: {})
+  - `tooltipMessageStyle` (string|object): Customize error message styles (default: {})
+  - `tooltipSuggestionsStyle` (string|object): Customize suggestions section styles (default: {})
+  - `tooltipLabelStyle` (string|object): Customize "Suggestions:" label styles (default: {})
+  - `tooltipListStyle` (string|object): Customize suggestions list styles (default: {})
+  - `tooltipItemStyle` (string|object): Customize individual suggestion item styles (default: {})
 
 **Returns:**
 - Object with:
@@ -260,9 +269,9 @@ Easiest way to add grammar checking to a contenteditable element. Handles cursor
 
 **Example:**
 ```javascript
-import { setupContentEditable } from 'opengrammer';
+import { GrammerCheckContent } from 'opengrammer';
 
-const checker = setupContentEditable('#my-editor', {
+const checker = GrammerCheckContent('#my-editor', {
   debounceMs: 500,
   debug: true
 });
@@ -274,7 +283,7 @@ checker.check();
 checker.destroy();
 ```
 
-### `setupTipTap(editor, options)`
+### `GrammerCheckContentTipTap(editor, options)`
 
 Integrates grammar checking with TipTap/ProseMirror editors.
 
@@ -306,9 +315,9 @@ Integrates grammar checking with TipTap/ProseMirror editors.
 **Example:**
 ```typescript
 import { Decoration, DecorationSet } from '@tiptap/pm/view';
-import { setupTipTap } from 'opengrammer';
+import { GrammerCheckContentTipTap } from 'opengrammer';
 
-const checker = setupTipTap(editor, {
+const checker = GrammerCheckContentTipTap(editor, {
   decorations: { Decoration, DecorationSet },
   debounceMs: 1000,
   debug: false
@@ -357,7 +366,7 @@ You can customize the styling by overriding the CSS classes:
 Enable debug logging to see what's happening:
 
 ```javascript
-setupContentEditable('#editor', { debug: true });
+GrammerCheckContent('#editor', { debug: true });
 ```
 
 Debug output includes:
