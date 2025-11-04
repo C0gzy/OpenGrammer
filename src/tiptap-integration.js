@@ -79,7 +79,6 @@ export function GrammerCheckContentTipTap(editor, options = {}) {
     debug = false,
     decorationClass = "grammar-error",
     decorationStyle = {},
-    decorationHoverStyle = {},
     tooltipStyle = {},
     tooltipMessageStyle = {},
     tooltipSuggestionsStyle = {},
@@ -108,7 +107,6 @@ export function GrammerCheckContentTipTap(editor, options = {}) {
 
   // Default decoration styles
   const defaultDecorationStyle = UpdateStyle("grammarerror", decorationStyle);
-  const defaultDecorationHoverStyle = UpdateStyle("grammarerror:hover", decorationHoverStyle);
   // Default tooltip styles
   const defaultTooltipStyle = UpdateStyle("TooltipStyle", tooltipStyle);
 
@@ -140,25 +138,64 @@ export function GrammerCheckContentTipTap(editor, options = {}) {
     }
   }
 
-  // Convert character offset to ProseMirror position
-  function charOffsetToProseMirrorPos(charOffset) {
+  // Build plain text from document structure (matching how we count in charOffsetToProseMirrorPos)
+  // This ensures consistency between text extraction and position mapping
+  function getPlainTextFromDoc() {
+    let text = '';
     const doc = editor.state.doc;
-    let pos = 1; // Start after the document start node
-    let charCount = 0;
-
-    doc.nodesBetween(0, doc.content.size, (node, nodePos) => {
+    
+    // Walk through nodes in document order - this MUST match charOffsetToProseMirrorPos
+    doc.nodesBetween(0, doc.content.size, (node) => {
       if (node.isText) {
-        const nodeLength = node.textContent.length;
-        if (charCount + nodeLength >= charOffset) {
-          pos = nodePos + (charOffset - charCount);
-          return false; // Stop iterating
-        }
-        charCount += nodeLength;
+        text += node.textContent;
       }
       return true;
     });
+    
+    return text;
+  }
 
-    return Math.max(1, Math.min(pos, doc.content.size));
+  // Convert character offset to ProseMirror position
+  // This function MUST visit nodes in the exact same order as getPlainTextFromDoc()
+  function charOffsetToProseMirrorPos(charOffset) {
+    const doc = editor.state.doc;
+    let charCount = 0;
+    let pmPos = 1;
+    let found = false;
+    
+    // Walk through nodes in the exact same order as getPlainTextFromDoc()
+    // This ensures character offsets map correctly to ProseMirror positions
+    doc.nodesBetween(0, doc.content.size, (node, nodePos) => {
+      if (node.isText) {
+        const nodeLength = node.textContent.length;
+        
+        // Check if our target offset is within this text node
+        if (!found && charCount <= charOffset && charOffset < charCount + nodeLength) {
+          // Calculate the offset within this text node
+          const offsetInNode = charOffset - charCount;
+          // nodePos is the absolute ProseMirror position where this text node starts
+          // Add the character offset within the node to get the exact position
+          pmPos = nodePos + offsetInNode;
+          found = true;
+          return false; // Stop iterating
+        }
+        
+        // Accumulate character count (matching getPlainTextFromDoc)
+        charCount += nodeLength;
+      }
+      
+      return true; // Continue iterating
+    });
+
+    // Fallback: if offset is beyond all text, place at end of document
+    if (!found && charCount > 0 && charOffset >= charCount) {
+      pmPos = doc.content.size;
+    }
+
+    // Clamp to valid document bounds
+    const validPos = Math.max(1, Math.min(pmPos, doc.content.size));
+    
+    return validPos;
   }
 
   // Create decorations from errors
@@ -176,7 +213,7 @@ export function GrammerCheckContentTipTap(editor, options = {}) {
         const validStartPos = Math.max(1, Math.min(startPos, maxPos));
         const validEndPos = Math.max(1, Math.min(endPos, maxPos));
 
-        if (validStartPos < validEndPos) {
+        if (error.startIndex < error.endIndex) {
           log(
             `Error at char ${error.startIndex}-${error.endIndex} mapped to pos ${validStartPos}-${validEndPos}`,
           );
@@ -184,7 +221,6 @@ export function GrammerCheckContentTipTap(editor, options = {}) {
           const decoration = Decoration.inline(validStartPos, validEndPos, {
             class: decorationClass,
             style: styleObjectToString(defaultDecorationStyle),
-            "hover-style": styleObjectToString(defaultDecorationHoverStyle),
             "data-error-id": error.id || String(error.startIndex),
             "data-suggestions": JSON.stringify(error.suggestions || []),
             "data-message": error.message || "Grammar error",
@@ -335,10 +371,12 @@ export function GrammerCheckContentTipTap(editor, options = {}) {
 
     isChecking = true;
 
-    const plainText = editor.state.doc.textContent;
+    // Use consistent text extraction method that matches position mapping
+    const plainText = getPlainTextFromDoc();
     const textLength = plainText.length;
+    const docSize = editor.state.doc.content.size;
 
-    log("Checking grammar...", { textLength });
+    log("Checking grammar...", { textLength, docSize });
 
     const startTime = performance.now();
     const result = checkAndFormat(plainText);
@@ -348,6 +386,15 @@ export function GrammerCheckContentTipTap(editor, options = {}) {
       `Found ${result.errors.length} error(s) in ${checkTime.toFixed(2)}ms`,
       result.errors,
     );
+
+    // Debug: Log position mappings for errors
+    if (result.errors.length > 0 && debug) {
+      result.errors.forEach((error) => {
+        const startPos = charOffsetToProseMirrorPos(error.startIndex);
+        const endPos = charOffsetToProseMirrorPos(error.endIndex);
+        log(`Error "${error.text}" at char ${error.startIndex}-${error.endIndex} mapped to PM pos ${startPos}-${endPos} (doc size: ${docSize})`);
+      });
+    }
 
     grammarErrors = result.errors;
     decorationSet = createDecorations(result.errors);

@@ -1,4 +1,5 @@
 export function UpdateStyle(Style, AddedStyles) {
+  console.log("Updating style", Style, AddedStyles);
   return Object.assign(defaultDecorationStyle[Style], AddedStyles);
 }
 
