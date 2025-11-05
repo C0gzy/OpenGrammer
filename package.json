@@ -1,13 +1,15 @@
 {
   "name": "opengrammer",
-  "version": "1.3.3",
+  "version": "1.3.4",
   "description": "A grammar checker npm package that scans text for grammar mistakes and provides suggestions with visual indicators",
   "main": "src/index.js",
+  "types": "index.d.ts",
   "type": "module",
   "repository": {
     "type": "git",
     "url": "https://github.com/C0gzy/opengrammer"
   },
+  "homepage": "https://open-grammer.vercel.app",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -21,7 +23,10 @@
   "author": "Thomas Cogzell <tomcogzell8@gmail.com>",
   "license": "MIT",
   "exports": {
-    ".": "./src/index.js",
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./src/index.js"
+    },
     "./styles": "./src/styles.css",
     "./tiptap": "./src/tiptap-integration.js"
   },
@@ -31,6 +36,7 @@
     }
   },
   "files": [
-    "src"
+    "src",
+    "index.d.ts"
   ]
 }
