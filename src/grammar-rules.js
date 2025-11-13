@@ -72,6 +72,11 @@ function isLikelyNoun(word) {
   return commonNouns.includes(word.toLowerCase())  || /^[A-Z]/.test(word);
 }
 
+function AnAExceptions(word) {
+  const exceptions = ['hour', 'hourly','hourglass','heir','honor','honorable','honest'];
+  return exceptions.includes(word.toLowerCase());
+}
+
 // expetion ing's
 function isExceptionIng(word) {
     if (!word) return false;
@@ -296,6 +301,28 @@ const grammarRules = [
       return suggestions.length > 0;
     }
   },
+
+  // An / a
+  {
+    pattern: /\b(an|a)\b/gi,
+    message: "Check usage of 'an' or 'a'",
+    getSuggestions: (match, fullMatch, text, index) => {
+      const word = match.toLowerCase();
+      const context = getContext(text, index, match.length);
+      if (word === 'an') {
+        if (context.nextWord[0].match(/^[aeiou]/) || AnAExceptions(context.nextWord)) {
+          return [];
+        }
+        return ['a'];
+      }
+      if (word === 'a') {
+        if (context.nextWord[0].match(/^[aeiou]/) || AnAExceptions(context.nextWord)) {
+          return ['an'];
+        }
+        return [];
+      }
+    }
+  },
   
   // Double spaces
   {
@@ -343,8 +370,142 @@ const grammarRules = [
       };
       return [contractions[word] || match];
     }
+  },
+  // join words with -
+  {
+    pattern: /\b(end to end|state of the art|up to date|well known|long term|short term|real time|high quality|low cost|full time|part time|hands on|one on one|face to face|day to day|word for word|side by side|back to back|well being|self esteem|long standing|wide ranging|far reaching|close knit|high end|low end|middle aged|old fashioned|new found|well rounded|well informed|well established|well deserved|well designed|well written|well made|well maintained|well documented|well received|well thought|well planned|well organized|well structured|well balanced|well educated|well trained|well equipped|well prepared|well executed|well managed|well funded|well supported|well liked|well respected|well regarded|well understood|well defined|well developed|well tested|well proven|well researched|well studied|well publicized|well advertised|well marketed|well positioned|well placed|well timed|well coordinated|well integrated|well connected|well synchronized|well aligned|well matched|well suited|well adapted|well adjusted)\b/gi,
+    message: "Join words with a hyphen",
+    getSuggestions: (match, fullMatch) => {
+      console.log(match);
+      const words = match.toLowerCase().split(' ');
+      const hyphens = {
+        'end to end': "end-to-end",
+        'state of the art': "state-of-the-art",
+        'up to date': "up-to-date",
+        'well known': "well-known",
+        'long term': "long-term",
+        'short term': "short-term",
+        'real time': "real-time",
+        'high quality': "high-quality",
+        'low cost': "low-cost",
+        'full time': "full-time",
+        'part time': "part-time",
+        'hands on': "hands-on",
+        'one on one': "one-on-one",
+        'face to face': "face-to-face",
+        'day to day': "day-to-day",
+        'word for word': "word-for-word",
+        'side by side': "side-by-side",
+        'back to back': "back-to-back",
+        'well being': "well-being",
+        'self esteem': "self-esteem",
+        'long standing': "long-standing",
+        'wide ranging': "wide-ranging",
+        'far reaching': "far-reaching",
+        'close knit': "close-knit",
+        'high end': "high-end",
+        'low end': "low-end",
+        'middle aged': "middle-aged",
+        'old fashioned': "old-fashioned",
+        'new found': "new-found",
+        'well rounded': "well-rounded",
+        'well informed': "well-informed",
+        'well established': "well-established",
+        'well deserved': "well-deserved",
+        'well designed': "well-designed",
+        'well written': "well-written",
+        'well made': "well-made",
+        'well maintained': "well-maintained",
+        'well documented': "well-documented",
+        'well received': "well-received",
+        'well thought': "well-thought",
+        'well planned': "well-planned",
+        'well organized': "well-organized",
+        'well structured': "well-structured",
+        'well balanced': "well-balanced",
+        'well educated': "well-educated",
+        'well trained': "well-trained",
+        'well equipped': "well-equipped",
+        'well prepared': "well-prepared",
+        'well executed': "well-executed",
+        'well managed': "well-managed",
+        'well funded': "well-funded",
+        'well supported': "well-supported",
+        'well liked': "well-liked",
+        'well respected': "well-respected",
+        'well regarded': "well-regarded",
+        'well understood': "well-understood",
+        'well defined': "well-defined",
+        'well developed': "well-developed",
+        'well tested': "well-tested",
+        'well proven': "well-proven",
+        'well researched': "well-researched",
+        'well studied': "well-studied",
+        'well publicized': "well-publicized",
+        'well advertised': "well-advertised",
+        'well marketed': "well-marketed",
+        'well positioned': "well-positioned",
+        'well placed': "well-placed",
+        'well timed': "well-timed",
+        'well coordinated': "well-coordinated",
+        'well integrated': "well-integrated",
+        'well connected': "well-connected",
+        'well synchronized': "well-synchronized",
+        'well aligned': "well-aligned",
+        'well matched': "well-matched",
+        'well suited': "well-suited",
+        'well adapted': "well-adapted",
+        'well adjusted': "well-adjusted"
+      };
+      return [hyphens[words.join(' ')] || match];
+    }
+  },
+
+  // concise language
+  {
+    pattern: /\b(as a whole the|in order to|due to the fact that|at this point in time|in the event that|for the purpose of|in the case of|with regard to|a large number of|a small number of|in the near future|at the present time|as a result of|in spite of the fact that|on account of the fact that|in the absence of|in the presence of|in the course of|with respect to|it is important to note that|it should be noted that|there is no doubt that|it is clear that|it is evident that|in terms of|for all intents and purposes|in the final analysis)\b/gi,
+    message: "Concise language may be preferred",
+    getSuggestions: (match, fullMatch) => {
+
+      const words = match.toLowerCase().split(' ');
+      const concise = {
+        'as a whole the': "the",
+        'in order to': "to",
+        'due to the fact that': "because",
+        'at this point in time': "now",
+        'in the event that': "if",
+        'for the purpose of': "to",
+        'in the case of': "for",
+        'with regard to': "regarding",
+        'a large number of': "many",
+        'a small number of': "few",
+        'in the near future': "soon",
+        'at the present time': "now",
+        'as a result of': "because of",
+        'in spite of the fact that': "although",
+        'on account of the fact that': "because",
+        'in the absence of': "without",
+        'in the presence of': "with",
+        'in the course of': "during",
+        'with respect to': "regarding",
+        'it is important to note that': "note that",
+        'it should be noted that': "note that",
+        'there is no doubt that': "certainly",
+        'it is clear that': "clearly",
+        'it is evident that': "evidently",
+        'in terms of': "",
+        'for all intents and purposes': "essentially",
+        'in the final analysis': "finally"
+      };
+      return [concise[words.join(' ')] || match];
+    }
   }
+
 ];
+
+
+
+
 
 // Main function to check text for grammar errors
 export function checkGrammar(text) {
