@@ -1,6 +1,6 @@
 {
   "name": "opengrammer",
-  "version": "1.3.5",
+  "version": "1.3.6",
   "description": "A grammar checker npm package that scans text for grammar mistakes and provides suggestions with visual indicators",
   "main": "src/index.js",
   "types": "index.d.ts",
